@@ -138,6 +138,22 @@ san-holo version
 - **Dashboard shows panels but no data** — check the cockpit's command
   bar: it shows `LIVE` / `STALE` / `OFFLINE`. `OFFLINE` means the API
   poll is failing; check the binary's stdout for the actual error.
+- **Bot is running but my XP / inventory isn't changing** — usually
+  one of three things:
+  1. **Belt depleted, waiting on the survey AMI** to open new mining
+     sites. Open the **Activity** tab and look at recent log entries
+     — if you see survey drones cycling "searching", that's the AMI
+     working. If you don't see any belt scans happening, hit the
+     **Scan system** button manually from the **Mining** tab to
+     trigger a fresh scan.
+  2. **Dry-run is still on.** Check the Bot badge in the command
+     bar — if it says `dry-run`, the bot is choosing actions but not
+     sending them. Click **Go Live** in the Bot Engine panel.
+  3. **A device got paused.** Look at the Fleet status tile on the
+     Overview — if it shows "N paused" in yellow, an AMI directive
+     has paused. Open the device on the **Fleet** tab and resume
+     it from the API docs (auto-resume from the cockpit is on the
+     roadmap).
 
 ## Roadmap
 
