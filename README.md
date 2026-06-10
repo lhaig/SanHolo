@@ -19,12 +19,27 @@ to watch what it's doing.
   you mining throughput.
 - **Prints** more drones (and AMI controllers, system_hub, etc.) when
   the right resources accumulate — capped so it doesn't run away.
-- **Drives in-game AMI controllers** (transport, survey) so the
-  Replicant Space AI handles routine hauling and surveying for you.
-- **Mission-control dashboard** at http://localhost:8080 with overview,
-  fleet, mining, galaxy map, catalog, activity log, and copilot panels.
+- **Diverts incoming asteroids** before impact: prints propulsors,
+  deploys + activates them at the asteroid, drops a beacon at the
+  impact target once diverted.
+- **Drives in-game AMI controllers** (transport, survey, mining) so the
+  Replicant Space AI handles routine hauling, surveying, and resource
+  gathering for you.
+- **Galaxy-first cockpit** at http://localhost:8080 — a pannable, zoomable
+  star/system map is the home screen. Click any planet, belt, star, or
+  device to open an inspector with its detail and controls; a top menu bar
+  (**Engine**, **Fleet**, **Build**, **Intel**, **System**) holds the bot
+  controls, fleet roster, blueprints, leaderboards/catalog, and settings; a
+  live ticker along the bottom shows the latest activity and copilot advice.
+  Full keyboard navigation and a reduced-motion / high-contrast mode included.
 - **Optional AI copilot** (Claude CLI or local Ollama) suggests
   next-step directives — always advisory; you decide whether to act.
+- **Operator directives** — set a directive from the cockpit (focus a
+  resource, build, explore, or relocate) to steer the bot, or clear it to
+  hand control back to the default strategies. `relocate` is the explicit
+  opt-in that authorises the bot to recall its fleet and hop to another
+  star system (abandoning the current system's stockpile and any immovable
+  structures) — it never relocates without it.
 - **Cross-restart memory** via a local SQLite catalog of sites,
   salvages, history; queryable from the CLI (`san-holo catalog ...`).
 
@@ -75,7 +90,7 @@ about an unrecognized app — click "More info → Run anyway".
 
 ```sh
 san-holo version
-# san-holo v0.1.0 (commit abcdef1)
+# san-holo v0.2.0 (commit abcdef1)
 ```
 
 ## First run
@@ -89,9 +104,9 @@ san-holo version
    ```sh
    san-holo verify -token <token-from-email>
    ```
-   Credentials are saved to `~/.config/san_holo/credentials.json` (Linux),
-   `~/Library/Application Support/san_holo/credentials.json` (macOS), or
-   `%APPDATA%\san_holo\credentials.json` (Windows).
+   Credentials are saved to `~/.config/san-holo/credentials.json` (Linux),
+   `~/Library/Application Support/san-holo/credentials.json` (macOS), or
+   `%APPDATA%\san-holo\credentials.json` (Windows).
 
    **Alternative — env vars** (handy for CI, headless servers, or
    testing): if you already have an API token from elsewhere, skip the
@@ -106,11 +121,28 @@ san-holo version
    ```sh
    san-holo serve
    ```
-   Open http://localhost:8080. The cockpit shows your fleet, mining
-   progress, copilot advice, and lets you toggle the bot on/off.
+   Open http://localhost:8080. The cockpit opens on a live map of your
+   system — click a body to inspect it, use the top menu bar for the
+   fleet / build / intel panels, and watch the bottom ticker for activity
+   and copilot advice.
 
-3. **Go live** when you're comfortable: click **Start** then **Go live**
-   in the cockpit, or start with `san-holo serve -live`.
+3. **Go live** when you're comfortable: open **Engine ▾** in the top bar,
+   click **Start**, then **Go live** — or start with `san-holo serve -live`.
+
+## CLI reference
+
+```sh
+san-holo version          # version + commit
+san-holo health           # API connectivity check
+san-holo me               # show authenticated account
+san-holo serve            # run cockpit at http://localhost:8080
+san-holo catalog ...      # query the offline discovery catalog
+                          # (unsalvaged | best <res> | events | history | depleted)
+san-holo clone            # dry-run cost report for cloning a second replicant
+san-holo clone -confirm   # execute the clone bootstrap prints
+```
+
+Run `san-holo` with no args for the full flag list.
 
 ## Safety defaults
 
@@ -119,7 +151,10 @@ san-holo version
   does not send any state-changing commands.
 - Every action is logged to the in-cockpit Activity panel before it fires.
 - The copilot's advice is **suggestive by default** — you decide whether
-  to act on it.
+  to act on it. You can also set an explicit directive from the cockpit
+  (focus_resource / build / explore / relocate) to steer the bot, or clear
+  it. `relocate` is the only way to authorise an interstellar hop — the bot
+  recalls + stows its fleet first and will not abandon a system otherwise.
 
 ## Troubleshooting
 
@@ -135,25 +170,22 @@ san-holo version
   "First run" → step 1).
 - **macOS "binary is damaged" prompt** — that's the unsigned-binary
   warning; see Install → macOS gatekeeper above.
-- **Dashboard shows panels but no data** — check the cockpit's command
-  bar: it shows `LIVE` / `STALE` / `OFFLINE`. `OFFLINE` means the API
-  poll is failing; check the binary's stdout for the actual error.
+- **Cockpit shows the map but no live data** — check the status readout on
+  the right of the top bar: `LIVE` / `STALE` / `OFFLINE`. `OFFLINE` means the
+  API poll is failing; check the binary's stdout for the actual error.
 - **Bot is running but my XP / inventory isn't changing** — usually
   one of three things:
   1. **Belt depleted, waiting on the survey AMI** to open new mining
-     sites. Open the **Activity** tab and look at recent log entries
-     — if you see survey drones cycling "searching", that's the AMI
-     working. If you don't see any belt scans happening, hit the
-     **Scan system** button manually from the **Mining** tab to
-     trigger a fresh scan.
-  2. **Dry-run is still on.** Check the Bot badge in the command
-     bar — if it says `dry-run`, the bot is choosing actions but not
-     sending them. Click **Go Live** in the Bot Engine panel.
-  3. **A device got paused.** Look at the Fleet status tile on the
-     Overview — if it shows "N paused" in yellow, an AMI directive
-     has paused. Open the device on the **Fleet** tab and resume
-     it from the API docs (auto-resume from the cockpit is on the
-     roadmap).
+     sites. Expand the bottom **ticker** to see recent activity — if you
+     see survey drones cycling "searching", that's the AMI working. To
+     force a fresh scan, click a planet or belt on the map and use the
+     **Scan** button in its inspector.
+  2. **Dry-run is still on.** The top bar shows a `dry-run` badge — if it's
+     there, the bot is choosing actions but not sending them. Open
+     **Engine ▾** and click **Go live**.
+  3. **A device got paused.** Open **Fleet ▾ → Devices** — paused devices
+     show in the fleet roster (and AMI status below it). Resume the device
+     from the API docs (auto-resume from the cockpit is on the roadmap).
 
 ## Roadmap
 
