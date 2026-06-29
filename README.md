@@ -14,24 +14,125 @@ to watch what it's doing.
   sites with survey drones; consolidates loot home with transport drones.
 - **Explores** the system: scans all planets and moons, surfaces new
   resource sites, salvages, and location events as they appear.
+- **Scouts** nearby stars with the home vessel once your account is mature
+  enough to support it safely. It now prefers the best nearby unexplored
+  system, not just the nearest, and always returns home after the scan-and-
+  survey leg. Fresh accounts keep `scout` off by default; developed anchored
+  empires auto-enable it unless you've explicitly chosen another stored scout
+  setting.
+- **Expands frontier worlds** more deliberately: when nearby discovery pressure
+  subsides and the best next move is to anchor a world you've already scouted,
+  SanHolo can now arm the normal `colonise` flow automatically toward that
+  anchor-chain target instead of leaving expansion stuck at the recommendation
+  layer.
 - **Salvages** discovered wreck sites automatically.
 - **Repairs** worn drones via maintenance drones before the wear costs
   you mining throughput.
 - **Prints** more drones (and AMI controllers, system_hub, etc.) when
-  the right resources accumulate — capped so it doesn't run away.
+  the right resources accumulate — capped so it doesn't run away. When
+  discovery is the strongest climb available, unattended printing now
+  biases toward survey capacity before raw miner count. It now also notices
+  obvious idle slack in the fleet, so it stops assuming that "print more of
+  the thing already sitting idle" is the best default growth move. Big idle
+  transport pools are now explicitly demoted so the bot stops inflating a role
+  that is already underused.
+- **Re-arms logistics** when a real build goal is short on resources and a
+  cached remote anchored stockpile looks useful, preferring the best haul
+  source instead of waiting only for the last manually-armed supply line. When
+  discovery pressure is low, the Progress view can now promote that haul move
+  directly as the best near-term climb.
 - **Diverts incoming asteroids** before impact: prints propulsors,
   deploys + activates them at the asteroid, drops a beacon at the
   impact target once diverted.
 - **Drives in-game AMI controllers** (transport, survey, mining) so the
   Replicant Space AI handles routine hauling, surveying, and resource
-  gathering for you.
+  gathering for you. If home-system mining or survey drones get stranded
+  under a remote AMI controller, SanHolo now revisits that controller's
+  system, lets the release path run, then returns home so local surveying
+  and mining recover automatically.
+- **Mining network planner** keeps a relay-aware per-system mining summary
+  (staffing, anchors, known resources, freshness). The bot can now return from
+  weak spokes when home is the better-managed mining world, and it only
+  auto-arms remote miner ferries for anchored worlds with clearly better,
+  fresher resource prospects. Persisted catalog site intel now triggers a
+  validation visit too, so promising stale remote worlds are revisited and
+  rescanned before miners get sent there. Fully depleted remote worlds are now
+  treated as “finish the recovery/validation leg, then come home”.
 - **Galaxy-first cockpit** at http://localhost:8080 — a pannable, zoomable
-  star/system map is the home screen. Click any planet, belt, star, or
-  device to open an inspector with its detail and controls; a top menu bar
-  (**Engine**, **Fleet**, **Build**, **Intel**, **System**) holds the bot
-  controls, fleet roster, blueprints, leaderboards/catalog, and settings; a
-  live ticker along the bottom shows the latest activity and copilot advice.
+  star/system map is the home screen, and a guided **Play** menu translates
+  your current game state into a simple early-game loop for manual pilots.
+  Click any planet, belt, star, or device to open an inspector with its
+  detail and controls; a top menu bar (**Play**, **Engine**, **Fleet**,
+  **Build**, **Intel**, **System**) holds the guided flow, bot controls,
+  fleet roster, blueprints, leaderboards/catalog, and settings; the Intel
+  menu now includes a **Progress** view that turns XP pace, build readiness,
+  fleet growth, and leaderboard movement into a clearer “what helps next?”
+  summary; leaderboard panels call out your visible rank plus recent up/down
+  movement; the Build and Mining surfaces now render in tighter content shells
+  with scroll wrappers on the truly wide tables, so they stop sprawling
+  sideways; the guided Play surface now explains live travel intent more
+  plainly, including remote AMI orphan-recovery trips and stale-intel
+  validation legs, and its automation guidance now adapts to new-player,
+  dry-run, and already-live advanced-account states. The guided Play loop now
+  also carries its own per-step actions, so scanning, fleet inspection, and
+  build follow-through are linked directly from the guided cards instead of
+  forcing menu hunting. Play and Progress now also use a stronger guide-layer
+  visual treatment, with clearer kickers, card depth, and section hierarchy so
+  the “what matters next?” surfaces stand apart from the denser ops panels; the Progress surface now
+  also calls out the current **Frontier** target so distance pushes and scout
+  goals are visible instead of implicit, and adds a clearer fleet-utilization
+  readout so underused capacity is visible without digging through raw device
+  tables. It now also surfaces a **Logistics** hint when a remote anchored
+  stockpile looks worth hauling and the freighter is sitting idle. The larger
+  operational menus now use bounded panels and push heavier detail into
+  explicit sub-tabs instead of forcing the top-level menu itself to become a
+  scroll container, and scrolling over an open menu now stays with the active
+  menu instead of dragging the background map. Engine and System now also open
+  into short overview tabs first, while Fleet, Build, and Intel keep the raw
+  command roster, full blueprint catalog, deeper intel, settings, and bot
+  automation as explicit advanced disclosures one step deeper. That cuts
+  default information overload without removing detail. System Overview now
+  also shows live travel posture, destination/ETA, scan freshness, and local
+  planet/moon coverage instead of behaving like a thin utility shell, and it
+  now explains the temporary “empty” handoff state while the API clears the
+  current location between systems. The Catalog panel
+  itself now also opens with a compact summary before the raw salvage,
+  depletion, event, and history tables, and Inbox/BobNet now call out quick
+  counts and actions before the long feed. The Mining surface now also leads
+  with a compact network summary so active production, idle miners, and the
+  top blocker are visible before the raw AMI/resource detail. Fleet Overview
+  now does the same for overall utilization, idle pools, and the main blocker
+  before the deeper readiness and AMI sections. Intel Overview now acts as a
+  real command summary, pulling threat posture, growth focus, leaderboard
+  movement, frontier pressure, logistics posture, and inbox pressure into one
+  screen before you dive into the specialist tabs. Intel Threats now also opens
+  with a compact posture summary before the detailed asteroid bookkeeping.
+  The overview cards across Engine, Fleet, Mining, Build, Intel, and System
+  now also share a more consistent visual treatment instead of each tab
+  carrying its own ad-hoc inline styling.
+  Build Queue now also leads with a short queue posture summary before the raw
+  autofactory and unlock tables. When nearby
+  unexplored stars run dry, the same frontier planning can now promote the best
+  already-scouted unanchored world as the next anchor-chain expansion target
+  instead of silently dropping that path; a live ticker along the bottom shows
+  the latest activity and copilot advice.
+  The **Fleet → Devices** roster also gives per-device manual commands —
+  deploy / recall / stow, and **Decommission** (with a confirm prompt) to
+  scrap a device you no longer need; the autofactory keeps its blueprint and
+  refunds ~60% of the print cost to the device's location.
   Full keyboard navigation and a reduced-motion / high-contrast mode included.
+- **BobNet** — the galactic comms layer (channel-based chat over the FTL
+  relay network) is surfaced in the cockpit's BobNet panel as collapsible
+  per-channel sections: read `#general` / `#trade` chatter, NPC
+  announcements, and other replicants' messages each grouped under their
+  own channel (with a message count), and send your own from the cockpit.
+  BobNet rides on your relays — bring one online to start listening.
+- **Inbox** — your message inbox leads with a *Mineable sites & salvage*
+  panel that pulls newly-discovered resource sites and salvage (with their
+  extractable resources) to the top, so actionable mining intel doesn't get
+  buried. Remaining messages are tagged by category — discovery, salvage,
+  depletion, achievement, blueprint or info — with mining-relevant tags
+  highlighted.
 - **Optional AI copilot** (Claude CLI or local Ollama) suggests
   next-step directives — always advisory; you decide whether to act.
 - **Operator directives** — set a directive from the cockpit (focus a
@@ -39,9 +140,28 @@ to watch what it's doing.
   hand control back to the default strategies. `relocate` is the explicit
   opt-in that authorises the bot to recall its fleet and hop to another
   star system (abandoning the current system's stockpile and any immovable
-  structures) — it never relocates without it.
+  structures) — it never relocates without it. `trade` is the opt-in that
+  authorises the bot to fulfil trades at reachable trade controllers —
+  it only ever pays surplus resources (above a reserve floor) for things
+  it's short on, and only at controllers in its current system; it never
+  trades without it. You can also set the **home base** (the location the
+  bot consolidates resources into and builds its system hub) from the
+  cockpit — handy for hub-and-spoke play as your galaxy footprint grows.
 - **Cross-restart memory** via a local SQLite catalog of sites,
   salvages, history; queryable from the CLI (`san-holo catalog ...`).
+  Belt depletion is remembered (6h TTL), so after a restart the bot
+  steers clear of known-dead belts instead of re-learning them by
+  trial — until they regenerate and re-open. Strategy enable/disable
+  toggles you set from the cockpit also persist, so a strategy you
+  switched off stays off across restarts instead of re-enabling itself.
+- **Game Director readout** — the Engine panel now leads with the current
+  objective, blocker, and next action before the advanced strategy list. The
+  same summary is echoed in the top status strip so manual pilots can see why
+  the bot is acting, waiting, or blocked without decoding every strategy name.
+  Its action chips open the relevant cockpit menu/tab directly. In a scanned
+  system with no asteroid belt, the exploration loop now keeps survey drones
+  free from non-belt survey AMIs and can print a local survey drone when needed
+  so the bot can keep scanning planets instead of silently stalling.
 
 ## Download
 
@@ -152,9 +272,19 @@ Run `san-holo` with no args for the full flag list.
 - Every action is logged to the in-cockpit Activity panel before it fires.
 - The copilot's advice is **suggestive by default** — you decide whether
   to act on it. You can also set an explicit directive from the cockpit
-  (focus_resource / build / explore / relocate) to steer the bot, or clear
-  it. `relocate` is the only way to authorise an interstellar hop — the bot
-  recalls + stows its fleet first and will not abandon a system otherwise.
+  (focus_resource / build / explore / relocate / scout / ferry-miners) to
+  steer the bot, or clear it. `relocate` is the only way to authorise an
+  interstellar hop — the bot recalls + stows its fleet first and will not
+  abandon a system otherwise. `scout` (param: a target star like `MENKENTAR`)
+  sends the home vessel on a scan-and-return run to a promising nearby
+  unexplored star to reveal its resources, then ALWAYS brings it home — your
+  base never moves.
+  Autonomous scouting ships disabled; enable the `scout` strategy from the
+  cockpit to let the bot pick and visit nearby stars on its own.
+  `ferry-miners` (param: a target belt designation like `ACHURD-8-L4`) ships
+  idle mining drones out to a spoke belt via a surge-capable carrier, where
+  that system's AMI controller adopts and runs them — the hub-and-spoke
+  restaff move.
 
 ## Troubleshooting
 
