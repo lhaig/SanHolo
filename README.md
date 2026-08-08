@@ -10,8 +10,10 @@ to watch what it's doing.
 
 ## What it does
 
-- **Mines** the richest belt and adapts as resources deplete; opens new
-  sites with survey drones; consolidates loot home with transport drones.
+- **Mines** the belt resources your current build goal actually needs, and
+  adapts as resources deplete; opens new sites with survey drones; consolidates
+  loot home with transport drones. When a belt is depleted and miners sit idle,
+  the Mining panel calls out that blocker directly.
 - **Explores** the system: scans all planets and moons, surfaces new
   resource sites, salvages, and location events as they appear.
 - **Scouts** nearby stars with the home vessel once your account is mature
@@ -28,6 +30,11 @@ to watch what it's doing.
 - **Salvages** discovered wreck sites automatically.
 - **Repairs** worn drones via maintenance drones before the wear costs
   you mining throughput.
+- **Cleans up stranded extractor drones** conservatively: when a live scan proves
+  the current non-home system has no asteroid belt, SanHolo can decommission
+  idle mining/survey drones there in place while leaving comms anchors and all
+  protected device types alone. The Fleet posture panel calls this out before
+  or while the cleanup runs.
 - **Prints** more drones (and AMI controllers, system_hub, etc.) when
   the right resources accumulate — capped so it doesn't run away. When
   discovery is the strongest climb available, unattended printing now
@@ -35,7 +42,9 @@ to watch what it's doing.
   obvious idle slack in the fleet, so it stops assuming that "print more of
   the thing already sitting idle" is the best default growth move. Big idle
   transport pools are now explicitly demoted so the bot stops inflating a role
-  that is already underused.
+  that is already underused. For low-risk fleet growth, the unattended
+  mining-drone cap is higher than the early-game defaults because miners do not
+  spend scarce rares or volatiles.
 - **Re-arms logistics** when a real build goal is short on resources and a
   cached remote anchored stockpile looks useful, preferring the best haul
   source instead of waiting only for the last manually-armed supply line. When
@@ -43,7 +52,9 @@ to watch what it's doing.
   directly as the best near-term climb.
 - **Diverts incoming asteroids** before impact: prints propulsors,
   deploys + activates them at the asteroid, drops a beacon at the
-  impact target once diverted.
+  impact target once diverted. Active in-system asteroids at or above
+  50% impact likelihood are handled early instead of waiting for a late
+  high-certainty scramble.
 - **Drives in-game AMI controllers** (transport, survey, mining) so the
   Replicant Space AI handles routine hauling, surveying, and resource
   gathering for you. If home-system mining or survey drones get stranded
@@ -73,7 +84,12 @@ to watch what it's doing.
   sideways; the guided Play surface now explains live travel intent more
   plainly, including remote AMI orphan-recovery trips and stale-intel
   validation legs, and its automation guidance now adapts to new-player,
-  dry-run, and already-live advanced-account states. The guided Play loop now
+  dry-run, and already-live advanced-account states. It now includes explicit
+  first-run checks for no scan, no deployed devices, empty current inventory, no
+  build-ready blueprint, and stopped/dry-run automation. Intel now also includes
+  a **Comms** panel that maps owned FTL beacons, relays, and hubs, labels current
+  relay-range edges, and turns nearby unanchored systems into one-click colonise
+  directive targets. The guided Play loop now
   also carries its own per-step actions, so scanning, fleet inspection, and
   build follow-through are linked directly from the guided cards instead of
   forcing menu hunting. Play and Progress now also use a stronger guide-layer
@@ -141,10 +157,11 @@ to watch what it's doing.
   opt-in that authorises the bot to recall its fleet and hop to another
   star system (abandoning the current system's stockpile and any immovable
   structures) — it never relocates without it. `trade` is the opt-in that
-  authorises the bot to fulfil trades at reachable trade controllers —
-  it only ever pays surplus resources (above a reserve floor) for things
-  it's short on, and only at controllers in its current system; it never
-  trades without it. You can also set the **home base** (the location the
+  authorises the bot to inspect relay-visible shop stock and fulfil trades at
+  reachable trade controllers — it only ever pays surplus resources (above a
+  reserve floor) for current strategic or print-priority needs, and only
+  fulfils at controllers at its exact location; it never trades without it. You
+  can also set the **home base** (the location the
   bot consolidates resources into and builds its system hub) from the
   cockpit — handy for hub-and-spoke play as your galaxy footprint grows.
 - **Cross-restart memory** via a local SQLite catalog of sites,
@@ -158,10 +175,13 @@ to watch what it's doing.
   objective, blocker, and next action before the advanced strategy list. The
   same summary is echoed in the top status strip so manual pilots can see why
   the bot is acting, waiting, or blocked without decoding every strategy name.
-  Its action chips open the relevant cockpit menu/tab directly. In a scanned
-  system with no asteroid belt, the exploration loop now keeps survey drones
-  free from non-belt survey AMIs and can print a local survey drone when needed
-  so the bot can keep scanning planets instead of silently stalling.
+  Its action chips open the relevant cockpit menu/tab directly. The grouped
+  strategy list also marks the most recently firing strategy and shows the last
+  fire time per strategy, so you can tell what is actually hot without reading
+  the full activity feed. In a scanned system with no asteroid belt, the
+  exploration loop now keeps survey drones free from non-belt survey AMIs and
+  can print a local survey drone when needed so the bot can keep scanning
+  planets instead of silently stalling.
 
 ## Download
 
@@ -210,7 +230,7 @@ about an unrecognized app — click "More info → Run anyway".
 
 ```sh
 san-holo version
-# san-holo v0.2.0 (commit abcdef1)
+# san-holo v0.3.1 (commit abcdef1)
 ```
 
 ## First run
